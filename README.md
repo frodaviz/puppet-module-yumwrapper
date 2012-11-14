@@ -26,6 +26,16 @@ To install a package with a custom enable repo:
       enablerepo => 'epel',
     }
 
+To install a package with a custom enable repo and install repo:
+
+    yumwrapper { 'zabbix-server-pgsql.x86_64':
+      ensure     => 'installed',
+      enablerepo => 'zabbixzone',
+      urlrepokey => 'http://repo.zabbixzone.com/centos/RPM-GPG-KEY-zabbixzone',
+      urlrepo    => 'http://repo.zabbixzone.com/centos/zabbixzone-release-0.0-1.noarch.rpm',
+    }
+
+
 Uninstall:
 
     yumwrapper { 'lynx':
