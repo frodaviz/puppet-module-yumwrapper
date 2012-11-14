@@ -1,17 +1,28 @@
 define yumwrapper (
   $ensure = 'present',
-  $enablerepo = undef
+  $enablerepo = undef,
+  $urlrepokey = undef,
+  $urlrepo = undef,
   ) {
-
   if $enablerepo {
     case $ensure {
       'present', 'installed': {
+
+        $repo_present = "repo_install_${enablerepo}_4_${name}"
+        exec { $repo_present:
+          command => "rpm --import ${urlrepokey} ; rpm -Uv ${urlrepo}",
+          unless => "yum repolist | grep ${enablerepo}",
+          path => ['/usr/bin', '/bin'],
+          logoutput => on_failure,
+        }
+
         $yum_name = "yum_install_${name}"
         exec { $yum_name:
           command => "yum install -y --enablerepo=${enablerepo} ${name}",
           unless => "rpm -q ${name}",
           path => ['/usr/bin', '/bin'],
           logoutput => on_failure,
+          require => Exec[$repo_present],
         }
 
         # Create a package resource, this effectively does nothing but create
@@ -22,7 +33,7 @@ define yumwrapper (
         }
       }
       'absent': {
-        package { $namevar:
+        package { $name:
           ensure => 'absent',
         }
       }
@@ -31,7 +42,7 @@ define yumwrapper (
       }
     }
   } else {
-    package { $namevar:
+    package { $name:
       ensure => $ensure,
       provider => 'yum',
     }
