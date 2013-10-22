@@ -9,11 +9,22 @@ define yumwrapper (
       'present', 'installed': {
 
         $repo_present = "repo_install_${enablerepo}_4_${name}"
-        exec { $repo_present:
-          command => "rpm --import ${urlrepokey} ; rpm -Uv ${urlrepo}",
-          unless => "yum repolist | grep ${enablerepo}",
-          path => ['/usr/bin', '/bin'],
-          logoutput => on_failure,
+        case  $urlrepo =~ /repo$/  {
+          /repo$/: {
+            exec { $repo_present:
+              command => "wget -N -P /etc/yum.repos.d/ ${urlrepo}",
+              path => ['/usr/bin', '/bin'],
+              logoutput => on_failure,
+            }
+          }
+          /rpm$/: {
+            exec { $repo_present:
+              command => "rpm --import ${urlrepokey} ; rpm -Uv ${urlrepo}",
+              unless => "yum repolist | grep ${enablerepo}",
+              path => ['/usr/bin', '/bin'],
+              logoutput => on_failure,
+            }
+          }
         }
 
         $yum_name = "yum_install_${name}"
